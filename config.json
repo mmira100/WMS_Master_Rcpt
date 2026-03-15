@@ -1,0 +1,14 @@
+{
+    "items": [
+        {
+            "url_token_tms": "https://login.microsoftonline.com/blueyonderus.onmicrosoft.com/oauth2/v2.0/token",
+            "url_token_wms": "https://bywmstest.dickalogistics.com.mx:5520/ws/auth/login",
+            "usr_id_wms": "EDGARSUPER",
+            "password_wms": "NAOSnet123.",
+            "url_wms_item": "https://bywmstest.dickalogistics.com.mx:5520/api/item/v1/items",
+            "c_id": "addf3efe-1124-443c-aa9d-cb57e8f841a4",
+            "c_sec": "Jh~8Q~szegYVOjEiTIw1oK-pc2cjv3MjB_L6HaS~",
+            "scope": "https://blueyonderus.onmicrosoft.com/69adb04d-658f-4b86-a659-67fe0f23bd1f/.default"
+        }
+    ]
+}
