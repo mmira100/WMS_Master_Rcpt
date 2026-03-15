@@ -73,7 +73,8 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
     Endpoint POST que requiere 'x-token-key' en el encabezado.
     """
     load_dotenv()
-    SECRET_KEY = os.getenv("SECRET_KEY")
+    #SECRET_KEY = os.getenv("SECRET_KEY")
+    SECRET_KEY = "e1d0a6ab396345b699455c953dbb165c"
     # Validar el token
     if x_token_key != SECRET_KEY:
         raise HTTPException(status_code=403, detail="Token no válido o inexistente")
