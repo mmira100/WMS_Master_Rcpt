@@ -29,13 +29,13 @@ class Item(BaseModel):
     precio: float
 
 #Veririfica que existan el folder para guardar la info recibida
-folder_name = "wms_payloads"
+folder_name = "wms_payloads2"
 #Comprobar si no existe la carpeta , crearla
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
 
 #Veririfica que existan el folder para guardar la info recibida
-folder_excel = "excel"
+folder_excel = "excel2"
 #Comprobar si no existe la carpeta , crearla
 if not os.path.exists(folder_excel):
     os.makedirs(folder_excel)
@@ -95,7 +95,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         with open(archivo, "w", encoding="utf-8") as f:
              json.dump(data, f, indent=4, ensure_ascii=False)
 
-       
+        print(trknum ) 
         
         resultado = {"Confirmación recibida,MASTER_RCPT_COMPLETE_OUB_IFD, muchas gracias.": trknum }
         return JSONResponse(
