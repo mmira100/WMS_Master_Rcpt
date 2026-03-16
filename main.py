@@ -222,11 +222,8 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
              adjusted_width = (max_length + 2)
              sheet.column_dimensions[column_letter].width = adjusted_width
 
-        folder_excel = '/tmp' 
-        file_name = f"{trknum}.xlsx"
-        local_path = os.path.join(folder_excel, file_name)
-        excel_book.save(local_path)      
-        #excel_book.save(f"{folder_excel}\{trknum}.xlsx")
+
+        excel_book.save(f"{folder_excel}\{trknum}.xlsx")
 
         #Enviar correo
         #login credential
