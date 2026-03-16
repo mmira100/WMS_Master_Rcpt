@@ -61,7 +61,7 @@ headers = {
 estatus = "Recibido"
 
 @app.post("/test/wms/rc", status_code=status.HTTP_202_ACCEPTED)
-async def get_json_raw(request: Request,x_token_key: str = Header(...)):
+async def get_json_raw(request: Request):
     #Consumir la API externa TMS BY token usando requests    
     #response = requests.post(url, data=payload, headers=headers)
     #Procesar y obtener el token de TMS BY
@@ -69,16 +69,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
      #   token_data = response.json()
       #  access_token = token_data.get('access_token')
     
-    """
-    Endpoint POST que requiere 'x-token-key' en el encabezado.
-    """
-    #load_dotenv()
-    #SECRET_KEY = os.getenv("SECRET_KEY")
-    SECRET_KEY = "e1d0a6ab396345b699455c953dbb165c"
-    # Validar el token
-    if x_token_key != SECRET_KEY:
-        raise HTTPException(status_code=403, detail="Token no válido o inexistente")
-    
+ 
    
 
     # 1. Leer el stream de bytes
