@@ -280,20 +280,24 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         
         ###asincrono###
         #
-        # Configura los datos de tu servidor de SALIDA (SMTP), no el de entrada (IMAP)
-        smtp_host = "smtp.gmail.com" # Si usas AWS SES
-        smtp_port = 587 # Puerto recomendado para AWS
+        smtp_server = "smtp.gmail.com"
+        smtp_port = 587
+        remitente = username
+       
         try:
-              with smtplib.SMTP(smtp_host, smtp_port) as server:
-                server.starttls() # Seguridad obligatoria en AWS
-                server.login(username, password)
-        
-                # 'reply' debe ser un objeto de tipo EmailMessage o MIME
-                # Si usas to_addrs, asegúrate de que sea una cadena o lista
-                server.send_message(reply, to_addrs="garcia.miguel@dickalogistics.com.mx")
-                print("Correo enviado exitosamente")
+            # 1. Conexión y Login
+            server = smtplib.SMTP(smtp_server, smtp_port)
+            server.starttls() # Cifrado obligatorio
+            server.login(remitente, password)
+
+            # 2. Envío del mensaje
+            # 'reply' es tu objeto de mensaje anterior
+            server.send_message(reply) 
+            print("Correo enviado con éxito")
+    
+            server.quit()
         except Exception as e:
-               print(f"Error al enviar: {e}")
+            print(f"Error: {e}")
          #  
         
         resultado = {"Confirmación recibida,MASTER_RCPT_COMPLETE_OUB_IFD, muchas gracias.": trknum }
