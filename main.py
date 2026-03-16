@@ -292,7 +292,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
 
             # 2. Envío del mensaje
             # 'reply' es tu objeto de mensaje anterior
-            server.send_message(reply) 
+            server.send_message(reply, to_addrs=["garcia.miguel@dickalogistics.com.mx","mmira100@yahoo.com"]) 
             print("Correo enviado con éxito")
     
             server.quit()
