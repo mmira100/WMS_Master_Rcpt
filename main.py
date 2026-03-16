@@ -246,7 +246,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         
         original_subject = "-Confirmación de Recibo Envío entrante:"+trknum
         original_to    = "garcia.miguel@dickalogistics.com.mx"
-        original_cc      = "mmira100@yahoo.com,sup.tepotzotlan@dickalogistics.com.mx"
+        original_cc      = "mmira100@yahoo.com,sup.tepotzotlan@dickalogistics.com.mx,galindo.jose@dickalogistics.com.mx"
         
         #Crear el nuevo mensaje de respuesta
         reply = EmailMessage()
