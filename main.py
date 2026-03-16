@@ -99,7 +99,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
              json.dump(data, f, indent=4, ensure_ascii=False)
 ###asincrono###   
         
-        dataF = [("Cliente",	"Número de Entrada","Proveedor","No. Factura","No. De producto","SKU","Flips","Estilo",	"Batch","Pack Code","Fecha de caducidad","Contenedor","Estado de Calidad","Referencia"),
+        dataF = [("Cliente",	"Número de Entrada","Proveedor","No. Factura","No. De producto","SKU","Cajas Solicitadas a Recibir","Flips Solicitados a Recibir","Cajas Recibidas","Flips Recibidos","Estilo",	"Batch","Pack Code","Fecha de caducidad","Contenedor","Estado de Calidad","Referencia"),
                 ]   
               
         lineas = data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["RCPT_INVOICE_OUB_IFD"]["RCPT_INVOICE_LINE_OUB_IFD"]  
@@ -107,6 +107,17 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         for linea in lineas:
              EXPQTY = linea.get("EXPQTY")
              if EXPQTY != 0:
+                load_dotenv()                
+                val_env = os.getenv(linea.get("PRTNUM"), "0")
+                CAJASEXP = float(val_env)
+                print(f"Valor de CAJASEXP: {CAJASEXP}")   
+
+                EXPQTY2 = linea.get("EXPQTY")
+                print(f"Valor de EXPQTY2: {EXPQTY2}")   
+
+                CAJASR = float(EXPQTY2)/CAJASEXP
+                print(f"Valor de CAJASR: {CAJASR}")   
+
                 PACK_CODE = linea.get("INV_ATTR_STR2")
                 print(f"Valor de PACK_CODE: {PACK_CODE}")   
                 REFERENCIA = linea.get("INV_ATTR_STR3")
@@ -123,8 +134,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
                 print(f"Valor de expire_dte: {expire_dte}")
              
              if EXPQTY == 0:
-                EXPQTY = linea.get("EXPQTY")
-                print(f"Valor de EXPQTY: {EXPQTY}")
+                                
                 invsln = linea.get("INVSLN")
                 print(f"Valor de INVSLN: {invsln}")
 
@@ -138,6 +148,10 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
                 print(f"Valor de QTYCS: {QTYCS}")
                 qtyFlips = linea.get("RCVQTY")
                 print(f"Valor de Flips: {qtyFlips}")
+                
+                CAJASRR = float(qtyFlips)/CAJASEXP
+                print(f"Valor de CAJASR: {CAJASRR}")   
+
                 LOTNUM = linea.get("LOTNUM")
                 print(f"Valor de ESTILO: {LOTNUM}")
                 SUP_LOTNUM = linea.get("SUP_LOTNUM")
@@ -155,8 +169,8 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
                     case 'RESG':
                         rcvsts ="RESGUARDO"
                 print(f"Valor de RCVSTS: { rcvsts }")
-                
-                nuevos_datos = [(CLIENT_ID, trknum, SUPNUM, NUM_FACTURA, EAN, PRTNUM,qtyFlips,LOTNUM,SUP_LOTNUM,PACK_CODE, expire_dte,PEDIMENTO,rcvsts,REFERENCIA  )
+         
+                nuevos_datos = [(CLIENT_ID, trknum, SUPNUM, NUM_FACTURA, EAN, PRTNUM,CAJASR,EXPQTY2,CAJASRR,qtyFlips,LOTNUM,SUP_LOTNUM,PACK_CODE, expire_dte,PEDIMENTO,rcvsts,REFERENCIA  )
                                ]
                 dataF.extend(nuevos_datos)	
                 
@@ -180,6 +194,9 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
             sheet[f'L{index+1}'] = row[11]
             sheet[f'M{index+1}'] = row[12]
             sheet[f'N{index+1}'] = row[13]
+            sheet[f'N{index+1}'] = row[14]
+            sheet[f'N{index+1}'] = row[15]
+            sheet[f'N{index+1}'] = row[15]
          
             
           
@@ -252,7 +269,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         reply = EmailMessage()
         reply['Subject'] = f"{original_subject}"
         reply['To'] = original_to  # Respondemos al remitente
-        reply['Cc'] = original_cc
+        #reply['Cc'] = original_cc
        
         reply['From'] = "dickainterfaces@gmail.com"
         msg_compartido = f"Saludos,\n\nSe comparte la confirmación de recibido para el  envío entrante identificado como:{trknum}\n\nFavor de revisar el excel adjunto con los detalles de cada línea recibida."
