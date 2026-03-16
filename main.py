@@ -8,19 +8,11 @@ from typing import Annotated
 from datetime import datetime
 from pydantic import BaseModel
 from typing import Optional
-from dotenv import load_dotenv
-import openpyxl 
-import email 
-import imaplib
-import smtplib
-from email.message import EmailMessage
-from openpyxl.styles import PatternFill, Font
-from openpyxl.styles import Border, Side
-from openpyxl.utils import get_column_letter
 
 app = FastAPI()
 
-
+# Definimos una clave secreta válida
+SECRET_KEY = "mi-clave-super-segura-123"
 
 # Modelo para los datos que recibiremos en el POST
 class Item(BaseModel):
@@ -29,16 +21,10 @@ class Item(BaseModel):
     precio: float
 
 #Veririfica que existan el folder para guardar la info recibida
-folder_name = "wms_payloads2"
+folder_name = "bpo_payloads"
 #Comprobar si no existe la carpeta , crearla
 if not os.path.exists(folder_name):
     os.makedirs(folder_name)
-
-#Veririfica que existan el folder para guardar la info recibida
-folder_excel = "excel2"
-#Comprobar si no existe la carpeta , crearla
-if not os.path.exists(folder_excel):
-    os.makedirs(folder_excel)
 
 #Abrir el archivo de configuración para urls y credenciales
 from pathlib import Path
@@ -54,14 +40,23 @@ with open(archivo_ruta, 'r') as f:
 #Arma la url del TMS BY token
 url = url_token_tms
 
+payload = {
+    'grant_type': 'client_credentials',
+    'client_id': 'addf3efe-1124-443c-aa9d-cb57e8f841a4',
+    'client_secret': 'Jh~8Q~szegYVOjEiTIw1oK-pc2cjv3MjB_L6HaS~',
+    'scope': 'https://blueyonderus.onmicrosoft.com/69adb04d-658f-4b86-a659-67fe0f23bd1f/.default'
+}
+
+
+
 headers = {
     'Content-Type': 'application/x-www-form-urlencoded'
 }
 
 estatus = "Recibido"
 
-@app.post("/test/wms/rc", status_code=status.HTTP_202_ACCEPTED)
-async def get_json_raw(request: Request):
+@app.post("/test/bpo", status_code=status.HTTP_202_ACCEPTED)
+async def get_json_raw(request: Request,x_token_key: str = Header(...)):
     #Consumir la API externa TMS BY token usando requests    
     #response = requests.post(url, data=payload, headers=headers)
     #Procesar y obtener el token de TMS BY
@@ -69,35 +64,35 @@ async def get_json_raw(request: Request):
      #   token_data = response.json()
       #  access_token = token_data.get('access_token')
     
- 
+    """
+    Endpoint POST que requiere 'x-token-key' en el encabezado.
+    """
+    # Validar el token
+    if x_token_key != SECRET_KEY:
+        raise HTTPException(status_code=403, detail="Token no válido o inexistente")
+    
    
 
     # 1. Leer el stream de bytes
     raw_body = await request.body()
-    
-    data = json.loads(raw_body)
-    trknum =  data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["TRKNUM"]
-    print(trknum)
     # 2. Parsear manualmente
     try:
         data      = json.loads(raw_body)
         fecha_str = datetime.now().strftime("%Y%m%d%H%M%S")
-        archivo   = folder_name+"/"+trknum+'_'+fecha_str+".json"
+        archivo   = folder_name+"/"+fecha_str+".json"
+
         #with open("bpo_payloads/ejemplo12.json", "w", encoding="utf-8") as f:
         with open(archivo, "w", encoding="utf-8") as f:
              json.dump(data, f, indent=4, ensure_ascii=False)
-
-        print(trknum ) 
-        
-        resultado = {"Confirmación recibida,MASTER_RCPT_COMPLETE_OUB_IFD, muchas gracias.": trknum }
+        resultado = {"Solicitud aceptada e información recibida, muchas gracias BPO.": fecha_str}
         return JSONResponse(
            status_code=200   , 
            content=resultado
             )
     
         #return {access_token }
-    except Exception as e:
-         return {"error": "Formato inválido", "detalle": str(e)}, 400
+    except Exception:
+        return {"error": "Formato inválido"}, 400
      
     
                        
