@@ -244,13 +244,13 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         
         original_subject = "Confirmación de Recibo Envío entrante:"+trknum
         original_to    = "garcia.miguel@dickalogistics.com.mx"
-        #original_cc      = "garcia.miguel@dickalogistics.com.mx"
+        original_cc      = "mmira100@yahoo.com"
         
         #Crear el nuevo mensaje de respuesta
         reply = EmailMessage()
         reply['Subject'] = f"{original_subject}"
         reply['To'] = original_to  # Respondemos al remitente
-        #reply['Cc'] = original_cc
+        reply['Cc'] = original_cc
        
         reply['From'] = "dickainterfaces@gmail.com"
         msg_compartido = f"Saludos,\n\nSe comparte la confirmación de recibido para el  envío entrante identificado como:{trknum}\n\nFavor de revisar el excel adjunto con los detalles de cada línea recibida."
@@ -272,7 +272,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
           with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
              smtp.login(username,password)
              smtp.send_message(reply,  to_addrs="garcia.miguel@dickalogistics.com.mx")             
-            #print(f"Respuesta enviada a {original_from}")
+             print(f"Respuesta enviada a {original_to }")
         except Exception as e:
              print(f"Error al responder: {e}")  
         
