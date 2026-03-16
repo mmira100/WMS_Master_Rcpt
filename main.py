@@ -17,6 +17,8 @@ from email.message import EmailMessage
 from openpyxl.styles import PatternFill, Font
 from openpyxl.styles import Border, Side
 from openpyxl.utils import get_column_letter
+import smtplib
+from email.message import EmailMessage
 
 app = FastAPI()
 
@@ -270,14 +272,29 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         #Enviar la respuesta
         try:
           with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-             smtp.login(username,password)
-             smtp.send_message(reply,  to_addrs="garcia.miguel@dickalogistics.com.mx")             
+             #smtp.login(username,password)
+             #smtp.send_message(reply,  to_addrs="garcia.miguel@dickalogistics.com.mx")             
              print(f"Respuesta enviada a {original_to }")
         except Exception as e:
              print(f"Error al responder: {e}")  
         
         ###asincrono###
-
+        #
+        # Configura los datos de tu servidor de SALIDA (SMTP), no el de entrada (IMAP)
+        smtp_host = "smtp.gmail.com" # Si usas AWS SES
+        smtp_port = 587 # Puerto recomendado para AWS
+        try:
+              with smtplib.SMTP(smtp_host, smtp_port) as server:
+                server.starttls() # Seguridad obligatoria en AWS
+                server.login(username, password)
+        
+                # 'reply' debe ser un objeto de tipo EmailMessage o MIME
+                # Si usas to_addrs, asegúrate de que sea una cadena o lista
+                server.send_message(reply, to_addrs="garcia.miguel@dickalogistics.com.mx")
+                print("Correo enviado exitosamente")
+        except Exception as e:
+               print(f"Error al enviar: {e}")
+         #  
         
         resultado = {"Confirmación recibida,MASTER_RCPT_COMPLETE_OUB_IFD, muchas gracias.": trknum }
         return JSONResponse(
