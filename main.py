@@ -265,7 +265,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         # Para Excel suele ser: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
         maintype, subtype = "application", "vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-        #reply.add_attachment(file_data, maintype=maintype, subtype=subtype,filename=archivo)  
+        reply.add_attachment(file_data, maintype=maintype, subtype=subtype,filename=archivo)  
 	    
         #Enviar la respuesta
         try:
