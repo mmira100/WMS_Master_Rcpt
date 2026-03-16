@@ -88,12 +88,13 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
     data = json.loads(raw_body)
     trknum =  data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["TRKNUM"]
     print(trknum)
+    print (raw_body)
     # 2. Parsear manualmente
     try:
         data      = json.loads(raw_body)
         fecha_str = datetime.now().strftime("%Y%m%d%H%M%S")
         archivo   = folder_name+"/"+trknum+'_'+fecha_str+".json"
-        #with open("bpo_payloads/ejemplo12.json", "w", encoding="utf-8") as f:
+        
         with open(archivo, "w", encoding="utf-8") as f:
              json.dump(data, f, indent=4, ensure_ascii=False)
 
