@@ -246,13 +246,13 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         
         original_subject = "-Confirmación de Recibo Envío entrante:"+trknum
         original_to    = "garcia.miguel@dickalogistics.com.mx"
-        #original_cc      = "garcia.miguel@dickalogistics.com.mx"
+        original_cc      = "mmira100@yahoo.com,sup.tepotzotlan@dickalogistics.com.mx"
         
         #Crear el nuevo mensaje de respuesta
         reply = EmailMessage()
         reply['Subject'] = f"{original_subject}"
         reply['To'] = original_to  # Respondemos al remitente
-        #reply['Cc'] = original_cc
+        reply['Cc'] = original_cc
        
         reply['From'] = "dickainterfaces@gmail.com"
         msg_compartido = f"Saludos,\n\nSe comparte la confirmación de recibido para el  envío entrante identificado como:{trknum}\n\nFavor de revisar el excel adjunto con los detalles de cada línea recibida."
@@ -267,38 +267,18 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         # Para Excel suele ser: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
         maintype, subtype = "application", "vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-        #reply.add_attachment(file_data, maintype=maintype, subtype=subtype,filename=archivo)  
+        reply.add_attachment(file_data, maintype=maintype, subtype=subtype,filename=archivo)  
 	    
         #Enviar la respuesta
         try:
           with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-             #smtp.login(username,password)
-             #smtp.send_message(reply,  to_addrs="garcia.miguel@dickalogistics.com.mx")             
+             smtp.login(username,password)
+             smtp.send_message(reply)             
              print(f"Respuesta enviada a {original_to }")
         except Exception as e:
              print(f"Error al responder: {e}")  
         
         ###asincrono###
-        #
-        smtp_server = "smtp.gmail.com"
-        smtp_port = 587
-        remitente = username
-       
-        try:
-            # 1. Conexión y Login
-            server = smtplib.SMTP(smtp_server, smtp_port)
-            server.starttls() # Cifrado obligatorio
-            server.login(remitente, password)
-
-            # 2. Envío del mensaje
-            # 'reply' es tu objeto de mensaje anterior
-            server.send_message(reply, to_addrs=["garcia.miguel@dickalogistics.com.mx","mmira100@yahoo.com"]) 
-            print("Correo enviado con éxito")
-    
-            server.quit()
-        except Exception as e:
-            print(f"Error: {e}")
-         #  
         
         resultado = {"Confirmación recibida,MASTER_RCPT_COMPLETE_OUB_IFD, muchas gracias.": trknum }
         return JSONResponse(
