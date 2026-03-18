@@ -274,7 +274,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         reply = EmailMessage()
         reply['Subject'] = f"{original_subject}"
         reply['To'] = original_to  # Respondemos al remitente
-        #reply['Cc'] = original_cc
+        reply['Cc'] = original_cc
        
         reply['From'] = "dickainterfaces@gmail.com"
         msg_compartido = f"Saludos,\n\nSe comparte la confirmación de recibido para el  envío entrante identificado como:{trknum}\n\nFavor de revisar el excel adjunto con los detalles de cada línea recibida."
