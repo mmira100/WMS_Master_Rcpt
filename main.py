@@ -263,7 +263,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         
         original_subject = "-Confirmación de Recibo Envío entrante:"+trknum
         original_to    = "Olga.Bohorquez@jti.com"
-        original_cc      = "garcia.miguel@dickalogistics.com.mx,Liliana.Cervantes@jti.com,Arturo.Olivares@jti.com,Uriel.Sanchez@jti.com,c06.jefeoperaciones@dickalogistics.com.mx,sup.tepotzotlan@dickalogistics.com.mx,hernandez.guadalupe@dickalogistics.com.mx"
+        original_cc      = "garcia.miguel@dickalogistics.com.mx,Liliana.Cervantes@jti.com,Arturo.Olivares@jti.com,Uriel.Sanchez@jti.com,c06.jefeoperaciones@dickalogistics.com.mx,Sup.tepotzotlan@dickalogistics.com.mx,sup.tepotzotlan@dickalogistics.com.mx,hernandez.guadalupe@dickalogistics.com.mx,galindo.jose@dickalogistics.com.mx"
         
 
 
