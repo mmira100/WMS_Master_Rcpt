@@ -97,83 +97,63 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         
         with open(archivo, "w", encoding="utf-8") as f:
              json.dump(data, f, indent=4, ensure_ascii=False)
-###asincrono###   
+        
+        ###asincrono###   
         
         dataF = [("Cliente",	"Número de Entrada","Proveedor","No. Factura","No. De producto","SKU","Cajas Solicitadas a Recibir","Flips Solicitados a Recibir","Cajas Recibidas","Flips Recibidos","Estilo",	"Batch","Pack Code","Fecha de caducidad","Contenedor","Estado de Calidad","Referencia"),
                 ]   
               
         lineas = data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["RCPT_INVOICE_OUB_IFD"]["RCPT_INVOICE_LINE_OUB_IFD"]  
         SUPNUM = data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["RCPT_INVOICE_OUB_IFD"]["SUPNUM"]
-        for linea in lineas:
-             EXPQTY = linea.get("EXPQTY")
-             if EXPQTY != 0:
-                load_dotenv()                
-                val_env = os.getenv(linea.get("PRTNUM"), "0")
-                CAJASEXP = float(val_env)
-                print(f"Valor de CAJASEXP: {CAJASEXP}")   
 
-                EXPQTY2 = linea.get("EXPQTY")
-                print(f"Valor de EXPQTY2: {EXPQTY2}")   
+        # 1. Inicializas una variable para rastrear el valor previo
+        ultimo_invsln = None
+        EXPQTY       = 0
+        CAJASR        = 0      
+        qtyFlips      = 0
+        CAJASRR       = 0
+        rcvsts        = "DISPONIBLE"
 
-                CAJASR = float(EXPQTY2)/CAJASEXP
-                print(f"Valor de CAJASR: {CAJASR}")   
+        CLIENT_ID   = ""
+        NUM_FACTURA = "" 
+        EAN         = ""
+        EXPQTY2     = ""
+        LOTNUM      =""
+        SUP_LOTNUM  =""
+        PACK_CODE   ="" 
+        expire_dte  =""
+        PEDIMENTO   =""
+        REFERENCIA  =""
 
-                PACK_CODE = linea.get("INV_ATTR_STR2")
-                print(f"Valor de PACK_CODE: {PACK_CODE}")   
-                REFERENCIA = linea.get("INV_ATTR_STR3")
-                print(f"Valor de REFERENCIA: {REFERENCIA}")
-                PEDIMENTO = linea.get("INV_ATTR_STR4")
-                print(f"Valor de PEDIMENTO: {PEDIMENTO}")
-              
-                ###
-                NUM_FACTURA  = linea.get("INV_ATTR_STR5")
-                print(f"Valor de NUM_FACTURA: {NUM_FACTURA}")
-                EAN  = linea.get("INV_ATTR_STR6")
-                print(f"Valor de EAN: {EAN}")
-                expire_dte  = linea.get("INV_ATTR_STR7")
-                print(f"Valor de expire_dte: {expire_dte}")
-             
-             if EXPQTY == 0:
-                                
-                invsln = linea.get("INVSLN")
-                print(f"Valor de INVSLN: {invsln}")
+        i = 0
+        n = len(lineas)
+        ultimo_invsln = None
+        
+        while i < n:
+           linea = lineas[i]
+           valor_actual = linea.get("INVSLN")
+           PRTNUM = linea.get("PRTNUM")
 
-                CLIENT_ID = linea.get("CLIENT_ID")
-                print(f"Valor de CLIENT_ID: {CLIENT_ID}")
-                print(f"Valor de trknum: {trknum}")
-                print(f"Valor de SUPNUM: {SUPNUM}")                
-                PRTNUM = linea.get("PRTNUM")
-                print(f"Valor de PRTNUM: {PRTNUM}")
-                QTYCS = 0
-                print(f"Valor de QTYCS: {QTYCS}")
-                qtyFlips = linea.get("RCVQTY")
-                print(f"Valor de Flips: {qtyFlips}")
-                
-                CAJASRR = float(qtyFlips)/CAJASEXP
-                print(f"Valor de CAJASR: {CAJASRR}")   
+           # --- SIMULACIÓN DO-WHILE: PROCESO PRINCIPAL ---
+    
+           # 1. Detectar cambio de valor (si no es el primero)
+           if ultimo_invsln is not None and valor_actual != ultimo_invsln:
+               print(f"Cambio detectado: de {ultimo_invsln} a {valor_actual}. Ejecutando proceso especial...")
+               
+               # Llama aquí a tu función de guardado o limpieza
+               nuevos_datos = [(CLIENT_ID, trknum, SUPNUM, NUM_FACTURA, EAN, PRTNUM,CAJASR,EXPQTY2,CAJASRR,qtyFlips,LOTNUM,SUP_LOTNUM,PACK_CODE, expire_dte,PEDIMENTO,rcvsts,REFERENCIA  )
+                              ]
+               dataF.extend(nuevos_datos)	
+           # 2. Tu lógica de negocio
+           val_env = os.getenv(valor_actual, "0")
+           print(f"Procesando: {valor_actual} con valor env: {val_env}")
 
-                LOTNUM = linea.get("LOTNUM")
-                print(f"Valor de ESTILO: {LOTNUM}")
-                SUP_LOTNUM = linea.get("SUP_LOTNUM")
-                print(f"Valor de SUP_LOTNUM: {SUP_LOTNUM}")
-                RCVSTS = linea.get("RCVSTS")
-                match RCVSTS:                 
-                    case 'A':
-                        rcvsts ="DISPONIBLE"
-                    case 'RESV':
-                        rcvsts = "RESERVA"
-                    case 'OBSE':
-                        rcvsts ="OBSOLETO"
-                    case 'EXP':
-                        rcvsts ="EXPIRED"
-                    case 'RESG':
-                        rcvsts ="RESGUARDO"
-                print(f"Valor de RCVSTS: { rcvsts }")
-         
-                nuevos_datos = [(CLIENT_ID, trknum, SUPNUM, NUM_FACTURA, EAN, PRTNUM,CAJASR,EXPQTY2,CAJASRR,qtyFlips,LOTNUM,SUP_LOTNUM,PACK_CODE, expire_dte,PEDIMENTO,rcvsts,REFERENCIA  )
-                               ]
-                dataF.extend(nuevos_datos)	
-                
+           # 3. Actualizar rastro para la siguiente vuelta
+           ultimo_invsln = valor_actual
+           i += 1
+    
+           # Condición de salida (el 'while' ya la maneja arriba, 
+
         #crear el excel        
         excel_book = openpyxl.Workbook()        
         sheet      = excel_book.active
@@ -242,11 +222,8 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
              sheet.column_dimensions[column_letter].width = adjusted_width
 
 
-        excel_book.save(f"{folder_excel}\{trknum_limpio}.xlsx")
-
-        #Enviar correo
-        #login credential
-        load_dotenv()    
+        excel_book.save(f"{folder_excel}\{trknum_limpio}.xlsx") 
+       
         imap_server =os.getenv("imap_server")
         impap_port  =os.getenv("impap_port")
         username= os.getenv("username2")
@@ -284,18 +261,18 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         nombre_archivo = f"{folder_excel}\{trknum_limpio}.xlsx" 
         archivo        = f"Confirmación {trknum_limpio}.xlsx" 
         # 1. Leer el archivo en binario
-        with open(nombre_archivo, 'rb') as f:
-           file_data = f.read()
+        #with open(nombre_archivo, 'rb') as f:
+         #  file_data = f.read()
         # Para Excel suele ser: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-        maintype, subtype = "application", "vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        #maintype, subtype = "application", "vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-        reply.add_attachment(file_data, maintype=maintype, subtype=subtype,filename=archivo)  
+        #reply.add_attachment(file_data, maintype=maintype, subtype=subtype,filename=archivo)  
 	    
         #Enviar la respuesta
         try:
           with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-             smtp.login(username,password)
-             smtp.send_message(reply)             
+             #smtp.login(username,password)
+             #smtp.send_message(reply)             
              print(f"Respuesta enviada a {original_to }")
         except Exception as e:
              print(f"Error al responder: {e}")  
