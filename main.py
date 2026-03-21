@@ -19,6 +19,7 @@ from openpyxl.styles import Border, Side
 from openpyxl.utils import get_column_letter
 import smtplib
 from email.message import EmailMessage
+import pandas as pd
 
 app = FastAPI()
 
@@ -100,24 +101,27 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         
         ###asincrono###   
         
-        dataF = [("Cliente",	"Número de Entrada","Proveedor","No. Factura","No. De producto","SKU","Cajas Solicitadas a Recibir","Flips Solicitados a Recibir","Cajas Recibidas","Flips Recibidos","Estilo",	"Batch","Pack Code","Fecha de caducidad","Contenedor","Estado de Calidad","Referencia"),
+        dataF = [("Cliente", "Número de Entrada", "Proveedor", "No. Factura", "No. De producto", "SKU", "Cajas Solicitadas a Recibir", "Flips Solicitados a Recibir", "Cajas Recibidas", "Flips Recibidos", "Estilo", "Batch", "Pack Code", "Fecha de Caducidad", "Contenedor", "Estado de Calidad", "Referencia", "Linea"),
                 ]   
-              
+            
         lineas = data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["RCPT_INVOICE_OUB_IFD"]["RCPT_INVOICE_LINE_OUB_IFD"]  
         SUPNUM = data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["RCPT_INVOICE_OUB_IFD"]["SUPNUM"]
 
         # 1. Inicializas una variable para rastrear el valor previo
         ultimo_invsln = None
-        EXPQTY       = 0
+        ultimo_EXPQTY = 0
+        EXPQTY        = 0
         CAJASR        = 0      
         qtyFlips      = 0
         CAJASRR       = 0
+        EXPQTY2       = 0
+        ultimo_qtyFlips = 0
         rcvsts        = "DISPONIBLE"
 
         CLIENT_ID   = ""
         NUM_FACTURA = "" 
         EAN         = ""
-        EXPQTY2     = ""
+       
         LOTNUM      =""
         SUP_LOTNUM  =""
         PACK_CODE   ="" 
@@ -125,58 +129,129 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         PEDIMENTO   =""
         REFERENCIA  =""
 
-        i = 0
-        n = len(lineas)
-        ultimo_invsln = None
-        
-        while i < n:
-           linea = lineas[i]
-           valor_actual = linea.get("INVSLN")
-           PRTNUM = linea.get("PRTNUM")
+        ultimo_REFERENCIA  = ""
+        ultimo_PACK_CODE   = ""  
+        ultimo_PEDIMENTO   = ""
+        ultimo_NUM_FACTURA = ""
+        ultimo_EAN         = ""
+        ultimo_expire_dte  = ""
+        ultimo_CLIENT_ID   = ""
+        ultimo_LOTNUM      = ""
+        ultimo_SUP_LOTNUM  = ""
+        ultimo_rcvsts      = ""
 
-           # --- SIMULACIÓN DO-WHILE: PROCESO PRINCIPAL ---
-    
-           # 1. Detectar cambio de valor (si no es el primero)
-           if ultimo_invsln is not None and valor_actual != ultimo_invsln:
-               print(f"Cambio detectado: de {ultimo_invsln} a {valor_actual}. Ejecutando proceso especial...")
+
+        for linea in lineas:
+            # 2. Obtienes el valor actual
+            valor_actual = linea.get("INVSLN")
+            invsln = linea.get("INVSLN")
+            print(f"Valor de INVSLN: {invsln}")           
+             
+            PRTNUM       = linea.get("PRTNUM")
+            if linea.get("INV_ATTR_STR2"):
+                PACK_CODE    = linea.get("INV_ATTR_STR2")
+
+            if linea.get("INV_ATTR_STR3"):
+                REFERENCIA = linea.get("INV_ATTR_STR3")
+            if linea.get("INV_ATTR_STR4"):    
+                PEDIMENTO = linea.get("INV_ATTR_STR4")
+            if linea.get("INV_ATTR_STR5"):
+                NUM_FACTURA  = linea.get("INV_ATTR_STR5")
+            if linea.get("INV_ATTR_STR6"):
+                EAN  = linea.get("INV_ATTR_STR6")
+            if linea.get("INV_ATTR_STR7"):
+                expire_dte  = linea.get("INV_ATTR_STR7")
+            if linea.get("CLIENT_ID"):
+                CLIENT_ID = linea.get("CLIENT_ID")
+            if linea.get("LOTNUM"):
+                LOTNUM = linea.get("LOTNUM")
+            if linea.get("SUP_LOTNUM"):
+                SUP_LOTNUM = linea.get("SUP_LOTNUM")
+
+            if linea.get("RCVSTS"):
+                RCVSTS = linea.get("RCVSTS")				
+                match RCVSTS:                 
+                    case 'A':
+                        rcvsts ="DISPONIBLE"
+                    case 'RESV':
+                        rcvsts = "RESERVA"
+                    case 'OBSE':
+                        rcvsts ="OBSOLETO"
+                    case 'EXP':
+                        rcvsts ="EXPIRED"
+                    case 'RESG':
+                        rcvsts ="RESGUARDO"
+            
+            if linea.get("RCVQTY"):
+               qtyFlips = linea.get("RCVQTY")  
+             
+           
+            if linea.get("EXPQTY"):  
+               EXPQTY = linea.get("EXPQTY")  
+            
+
+            # ¡Aquí detectas el cambio! 
+             # 3. Comparas: si es distinto al último guardado (y no es el primero)
+            if ultimo_invsln is not None and valor_actual != ultimo_invsln:
+                print(f"El x valor cambió de {ultimo_invsln} a {valor_actual}. Ejecutando acción...")                         
+                nuevos_datos = [(ultimo_CLIENT_ID, trknum, SUPNUM, ultimo_NUM_FACTURA, ultimo_EAN, ultimo_PRTNUM,CAJASR,ultimo_EXPQTY,CAJASRR,ultimo_qtyFlips,ultimo_LOTNUM,ultimo_SUP_LOTNUM,ultimo_PACK_CODE, ultimo_expire_dte,ultimo_PEDIMENTO,ultimo_rcvsts,ultimo_REFERENCIA,ultimo_invsln  )
+                      ]
+                dataF.extend(nuevos_datos)	
+                ultimo_qtyFlips =0
+                ultimo_EXPQTY   =0
+              
+            
+            # 4. Actualizas la variable auxiliar para la siguiente vuelta               
+            if linea.get("EXPQTY"):
+               ultimo_EXPQTY      += EXPQTY
+               load_dotenv()                
+               val_env = os.getenv(linea.get("PRTNUM"), "0")
+               if val_env:
+                  CAJASEXP = float(val_env)
+               else: 
+                  CAJASEXP = 50               
+               if ultimo_EXPQTY !=0:
+                 CAJASR             =ultimo_EXPQTY/CAJASEXP
+           
+            if linea.get("RCVQTY"):
+               valor =linea.get("RCVQTY")
+               print(f"rcvqty- {valor }")
+               ultimo_qtyFlips += linea.get("RCVQTY")
+               print(f"ultimo_qtyFlips- {ultimo_qtyFlips }")
+               load_dotenv()                
+               val_env = os.getenv(linea.get("PRTNUM"), "0")
+               if val_env:
+                  CAJASEXP = float(val_env)
+               else: 
+                  CAJASEXP = 50               
+               CAJASRR  = (ultimo_qtyFlips/CAJASEXP) 
+
+            ultimo_invsln      = valor_actual
+            ultimo_PRTNUM      = PRTNUM
+            ultimo_PACK_CODE   = PACK_CODE 
+            ultimo_PEDIMENTO   = PEDIMENTO
+            ultimo_NUM_FACTURA = NUM_FACTURA
+            ultimo_EAN         = EAN
+            ultimo_expire_dte  = expire_dte
+            ultimo_CLIENT_ID   = CLIENT_ID
+            ultimo_LOTNUM      = LOTNUM
+            ultimo_SUP_LOTNUM  = SUP_LOTNUM
+            ultimo_rcvsts      = rcvsts
+            ultimo_REFERENCIA  = REFERENCIA
+
+        nuevos_datos = [(ultimo_CLIENT_ID, trknum, SUPNUM, ultimo_NUM_FACTURA, ultimo_EAN, ultimo_PRTNUM,CAJASR,ultimo_EXPQTY,CAJASRR,ultimo_qtyFlips,ultimo_LOTNUM,ultimo_SUP_LOTNUM,ultimo_PACK_CODE, ultimo_expire_dte,ultimo_PEDIMENTO,ultimo_rcvsts,ultimo_REFERENCIA,ultimo_invsln  )
+                   ]
+        dataF.extend(nuevos_datos)	
                
-               # Llama aquí a tu función de guardado o limpieza
-               nuevos_datos = [(CLIENT_ID, trknum, SUPNUM, NUM_FACTURA, EAN, PRTNUM,CAJASR,EXPQTY2,CAJASRR,qtyFlips,LOTNUM,SUP_LOTNUM,PACK_CODE, expire_dte,PEDIMENTO,rcvsts,REFERENCIA  )
-                              ]
-               dataF.extend(nuevos_datos)	
-           # 2. Tu lógica de negocio
-           val_env = os.getenv(valor_actual, "0")
-           print(f"Procesando: {valor_actual} con valor env: {val_env}")
-
-           # 3. Actualizar rastro para la siguiente vuelta
-           ultimo_invsln = valor_actual
-           i += 1
-    
-           # Condición de salida (el 'while' ya la maneja arriba, 
-
         #crear el excel        
         excel_book = openpyxl.Workbook()        
         sheet      = excel_book.active
         sheet.title = trknum_limpio
         
-        for index, row in enumerate(dataF):
-            sheet[f'A{index+1}'] = row[0]
-            sheet[f'B{index+1}'] = row[1]
-            sheet[f'C{index+1}'] = row[2]
-            sheet[f'D{index+1}'] = row[3]
-            sheet[f'E{index+1}'] = row[4]
-            sheet[f'F{index+1}'] = row[5]
-            sheet[f'G{index+1}'] = row[6]
-            sheet[f'H{index+1}'] = row[7]
-            sheet[f'I{index+1}'] = row[8]
-            sheet[f'J{index+1}'] = row[9]
-            sheet[f'K{index+1}'] = row[10]
-            sheet[f'L{index+1}'] = row[11]
-            sheet[f'M{index+1}'] = row[12]
-            sheet[f'N{index+1}'] = row[13]
-            sheet[f'N{index+1}'] = row[14]
-            sheet[f'N{index+1}'] = row[15]
-            sheet[f'N{index+1}'] = row[15]
+        for index_fila, row in enumerate(dataF):
+           for index_col, valor in enumerate(row):
+            # index_col + 1 porque Excel empieza en columna 1
+              sheet.cell(row=index_fila + 1, column=index_col + 1, value=valor)
          
             
           
@@ -239,8 +314,10 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
 
         
         original_subject = "-Confirmación de Recibo Envío entrante:"+trknum
+        #original_to    = "garcia.miguel@dickalogistics.com.mx"
+        #original_cc      ="garcia.miguel@dickalogistics.com.mx"
         original_to    = "Olga.Bohorquez@jti.com"
-        original_cc      = "garcia.miguel@dickalogistics.com.mx,Liliana.Cervantes@jti.com,Arturo.Olivares@jti.com,Uriel.Sanchez@jti.com,c06.jefeoperaciones@dickalogistics.com.mx,Sup.tepotzotlan@dickalogistics.com.mx,sup.tepotzotlan@dickalogistics.com.mx,hernandez.guadalupe@dickalogistics.com.mx,galindo.jose@dickalogistics.com.mx"
+        original_cc      = "garcia.miguel@dickalogistics.com.mx,Liliana.Cervantes@jti.com,Arturo.Olivares@jti.com,Uriel.Sanchez@jti.com,c06.jefeoperaciones@dickalogistics.com.mx,Sup.tepotzotlan@dickalogistics.com.mx,sup.tepotzotlan@dickalogistics.com.mx,hernandez.guadalupe@dickalogistics.com.mx"
         
 
 
@@ -261,18 +338,18 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         nombre_archivo = f"{folder_excel}\{trknum_limpio}.xlsx" 
         archivo        = f"Confirmación {trknum_limpio}.xlsx" 
         # 1. Leer el archivo en binario
-        #with open(nombre_archivo, 'rb') as f:
-         #  file_data = f.read()
+        with open(nombre_archivo, 'rb') as f:
+           file_data = f.read()
         # Para Excel suele ser: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
-        #maintype, subtype = "application", "vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        maintype, subtype = "application", "vnd.openxmlformats-officedocument.spreadsheetml.sheet"
 
-        #reply.add_attachment(file_data, maintype=maintype, subtype=subtype,filename=archivo)  
+        reply.add_attachment(file_data, maintype=maintype, subtype=subtype,filename=archivo)  
 	    
         #Enviar la respuesta
         try:
           with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-             #smtp.login(username,password)
-             #smtp.send_message(reply)             
+             smtp.login(username,password)
+             smtp.send_message(reply)             
              print(f"Respuesta enviada a {original_to }")
         except Exception as e:
              print(f"Error al responder: {e}")  
