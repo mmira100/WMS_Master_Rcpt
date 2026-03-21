@@ -90,6 +90,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
     trknum =  data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["TRKNUM"]
     trknum_limpio = trknum.replace("/", "_")
     print(trknum_limpio)
+    trknum_limpio = trknum.replace(".", "_")
     # 2. Parsear manualmente
     try:
         data      = json.loads(raw_body)
