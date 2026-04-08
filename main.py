@@ -207,7 +207,9 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
                   CAJASEXP = float(val_env)
                else: 
                   CAJASEXP = 50           
-               
+               if  PRTNUM  =="16383842-2612" and LOTNUM =='COPACK':
+                  CAJASEXP = 80           
+
                CAJASEXP = int(CAJASEXP)
                print(f"CAJASEXP {CAJASEXP}")       
                
@@ -227,6 +229,10 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
                   CAJASEXP = float(val_env)
                else: 
                   CAJASEXP = 50       
+               
+               if  PRTNUM  =="16383842-2612" and LOTNUM =='COPACK':
+                  CAJASEXP = 80           
+
                CAJASEXP = int(CAJASEXP)
                print(f"CAJASEXP {CAJASEXP}")                
 
