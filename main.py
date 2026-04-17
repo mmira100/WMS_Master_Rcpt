@@ -90,7 +90,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
     try:
         data      = json.loads(raw_body)
         fecha_str = datetime.now().strftime("%Y%m%d%H%M%S")
-        archivo   = folder_name+"/"+trknum_limpio+'_'+fecha_str+".json"
+        archivo   = folder_name+"/"+trknum_limpio+"_"+fecha_str+".json"
         
         with open(archivo, "w", encoding="utf-8") as f:
              json.dump(data, f, indent=4, ensure_ascii=False)
@@ -100,6 +100,9 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         dataF = [("Cliente", "Número de Entrada", "Proveedor", "No. Factura", "No. De producto", "SKU", "Cajas Solicitadas a Recibir", "Flips Solicitados a Recibir", "Cajas Recibidas", "Flips Recibidos", "Estilo", "Batch", "Pack Code", "Fecha de Caducidad", "Contenedor", "Estado de Calidad", "Referencia", "Linea"),
                 ]   
             
+    
+       
+
         lineas = data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["RCPT_INVOICE_OUB_IFD"]["RCPT_INVOICE_LINE_OUB_IFD"]  
         SUPNUM = data["MASTER_RCPT_COMPLETE_OUB_IFD"]["RCV_TRLR_OUB_IFD"]["MASTER_RCPT_OUB_IFD"]["RCPT_INVOICE_OUB_IFD"]["SUPNUM"]
 
@@ -136,8 +139,13 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         ultimo_SUP_LOTNUM  = ""
         ultimo_rcvsts      = ""
 
+        # Normalizamos: si es un solo dict, lo metemos en una lista []
+        if isinstance(lineas, dict):
+          lista_final = [lineas]
+        else:
+           lista_final = lineas   
 
-        for linea in lineas:
+        for linea in lista_final:
             # 2. Obtienes el valor actual
             valor_actual = linea.get("INVSLN")
             invsln = linea.get("INVSLN")
@@ -207,7 +215,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
                   CAJASEXP = float(val_env)
                else: 
                   CAJASEXP = 50           
-               if  PRTNUM  =="16383842-2612" and LOTNUM =='COPACK':
+               if  LOTNUM =='COPACK':
                   CAJASEXP = 80           
 
                CAJASEXP = int(CAJASEXP)
@@ -230,7 +238,7 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
                else: 
                   CAJASEXP = 50       
                
-               if  PRTNUM  =="16383842-2612" and LOTNUM =='COPACK':
+               if  LOTNUM =='COPACK':
                   CAJASEXP = 80           
 
                CAJASEXP = int(CAJASEXP)
@@ -362,8 +370,8 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         #Enviar la respuesta
         try:
           with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-             smtp.login(username,password)
-             smtp.send_message(reply)             
+             #smtp.login(username,password)
+             #smtp.send_message(reply)             
              print(f"Respuesta enviada a {original_to }")
         except Exception as e:
              print(f"Error al responder: {e}")  
