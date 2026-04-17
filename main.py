@@ -370,8 +370,8 @@ async def get_json_raw(request: Request,x_token_key: str = Header(...)):
         #Enviar la respuesta
         try:
           with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-             #smtp.login(username,password)
-             #smtp.send_message(reply)             
+             smtp.login(username,password)
+             smtp.send_message(reply)             
              print(f"Respuesta enviada a {original_to }")
         except Exception as e:
              print(f"Error al responder: {e}")  
